@@ -1,5 +1,6 @@
-from mesa import Agent
 from PIL import Image
+
+from mesa import Agent
 import numpy as np
 
 class RobotAgent(Agent):

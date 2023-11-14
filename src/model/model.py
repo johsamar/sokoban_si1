@@ -7,11 +7,16 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 
 class SokobanModel(Model):
-    def __init__(self,width,height):
+    def __init__(self,width,height,algorithm=None, heuristic=None):
 
         self.grid = MultiGrid(width, height, True)
         self.schedule = RandomActivation(self)
+        self.algorithm = algorithm
+        self.heuristic = heuristic
 
+        """class SokobanModel(Model):
+    def __init__(self, N, width, height, search_type="uninformed", heuristic="heuristic1"):
+        # ..."""
         robot = RobotAgent(1, self)
         wall = WallAgent(2, self)
         box = BoxAgent(3, self)
