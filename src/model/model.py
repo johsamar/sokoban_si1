@@ -1,20 +1,13 @@
 from mesa import Model
 from agent.robotAgent import RobotAgent
-from agent.wallAgent import WallAgent
+from agent.rockAgent import RockAgent
 from agent.boxAgent import BoxAgent
 from agent.finishAgent import FinishAgent
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
+from utils.readfile import read_map
 
 class SokobanModel(Model):
-    def load_map(self, filename):
-        with open(filename, 'r') as file:
-            map_string = file.read()
-        map_list = [line.split(', ') for line in map_string.splitlines()]
-        print(map_list) 
-        self.width = len(map_list[0]) 
-        self.height = len(map_list)
-        return map_list
 
     def __init__(self, algorithm=None, heuristic=None, filename=None):
         self.schedule = RandomActivation(self)
@@ -23,14 +16,14 @@ class SokobanModel(Model):
         self.filename = filename
 
         # Carga el mapa
-        self.map = self.load_map(filename)
+        self.map, self.width, self.height = read_map(filename)
 
         # Inicializa la cuadrícula con la altura y anchura del mapa
         self.grid = MultiGrid(self.width, self.height, True)
 
         agent_id = 0
-        for y in range(self.height):
-            for x in range(self.width):
+        for y in reversed(range(self.height)):
+            for x in reversed(range(self.width)):
                 grid_content = self.map[y][x]
                 if 'C-a' in grid_content:
                     robot = RobotAgent(agent_id, self)
@@ -43,15 +36,17 @@ class SokobanModel(Model):
                     self.schedule.add(box)
                     agent_id += 1
                 elif 'R' in grid_content:
-                    wall = WallAgent(agent_id, self)
-                    self.grid.place_agent(wall, (x, y))
-                    self.schedule.add(wall)
+                    rock = RockAgent(agent_id, self)
+                    self.grid.place_agent(rock, (x, y))
+                    self.schedule.add(rock)
                     agent_id += 1
                 elif 'M' in grid_content:
                     finish = FinishAgent(agent_id, self)
                     self.grid.place_agent(finish, (x, y))
                     self.schedule.add(finish)
                     agent_id += 1
+
+
         # Resto del código del modelo sin cambios
 
     # Agregar propiedades 
