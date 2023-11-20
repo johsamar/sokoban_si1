@@ -1,5 +1,5 @@
 from mesa import Agent
-from queue import Queue
+from helpers.constants import Constans
 
 
 class RobotAgent(Agent):
@@ -10,7 +10,8 @@ class RobotAgent(Agent):
         self.layer = 1
     
     def step(self):
-        next_position = self.model.queue.queue[0]
+        if self.model.algorithm == Constans.BFS:
+            next_position = self.model.queue.queue[0]
 
         self.model.grid.move_agent(self, next_position[0])
        

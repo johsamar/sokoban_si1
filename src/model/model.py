@@ -16,13 +16,16 @@ class SokobanModel(Model):
     def __init__(self, algorithm=None, heuristic=None, filename=None):
         self.schedule = RandomActivation(self)
 
+        # Estructuras de datos para la búsqueda
         self.queue = Queue()
         self.stack = []
         self.visited = set()
 
+        # Los flags de finalización y éxito
         self.finished = False
         self.found = False
 
+        # Inicializa los parámetros del modelo
         self.algorithm = algorithm
         self.heuristic = heuristic
         self.filename = filename
@@ -36,12 +39,17 @@ class SokobanModel(Model):
         # Carga los agentes
         load_agents(self.map, self, self.grid, self.schedule, self.width, self.height)
 
+        # Obtener la posición de la meta, y el robot
         robot_agent = next(agent for agent in self.schedule.agents if isinstance(agent, RobotAgent))
         goal_agent = next(agent for agent in self.schedule.agents if isinstance(agent, FinishAgent))
+
+        #Define la posición de la meta
         self.goal_position = goal_agent.pos
 
         # Obtener la posición actual del robot
         start_position = robot_agent.pos
+
+        # Agregar la posición inicial del robot a las estructuras de datos
         self.queue.put((start_position, 0))
         self.stack.append((start_position, 0))
      
@@ -54,18 +62,14 @@ class SokobanModel(Model):
                         print(f'{item.__class__.__name__} en ({x}, {y})', end='')
                 else:
                     print(f'Camino en ({x}, {y})', end='')
-            print()
-                
+            print()     
             
-            
-            
-        
-            
-
     def step(self) -> None:        
         # Realizar la búsqueda en anchura
         if self.algorithm == Constans.BFS:
             self.bfs()
+        elif self.algorithm == Constans.DFS:
+            self.dfs()
 
         if not self.finished:
             self.schedule.step()
@@ -95,7 +99,7 @@ class SokobanModel(Model):
                     
                     if neighbor not in self.visited:
                         if(size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent)):
-                            print("Vecino: ", neighbor)
+                            print("Vecino roca: ", neighbor)
                         else:
                             self.queue.put((neighbor, step + 1))
             print(f"Cola: {self.queue.queue}")
