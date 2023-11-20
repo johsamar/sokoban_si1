@@ -16,13 +16,16 @@ class SokobanModel(Model):
     def __init__(self, algorithm=None, heuristic=None, filename=None):
         self.schedule = RandomActivation(self)
 
+        # Estructuras de datos para la búsqueda
         self.queue = Queue()
         self.stack = []
         self.visited = set()
 
+        # Los flags de finalización y éxito
         self.finished = False
         self.found = False
 
+        # Inicializa los parámetros del modelo
         self.algorithm = algorithm
         self.heuristic = heuristic
         self.filename = filename
@@ -36,12 +39,17 @@ class SokobanModel(Model):
         # Carga los agentes
         load_agents(self.map, self, self.grid, self.schedule, self.width, self.height)
 
+        # Obtener la posición de la meta, y el robot
         robot_agent = next(agent for agent in self.schedule.agents if isinstance(agent, RobotAgent))
         goal_agent = next(agent for agent in self.schedule.agents if isinstance(agent, FinishAgent))
+
+        #Define la posición de la meta
         self.goal_position = goal_agent.pos
 
         # Obtener la posición actual del robot
         start_position = robot_agent.pos
+
+        # Agregar la posición inicial del robot a las estructuras de datos
         self.queue.put((start_position, 0))
         self.stack.append((start_position, 0))
      
@@ -77,6 +85,8 @@ class SokobanModel(Model):
             self.bfs()
         if self.algorithm == Constans.UNIFORM_COST:
             self.costo_uniforme()
+        elif self.algorithm == Constans.DFS:
+            self.dfs()
 
         if not self.finished:
             self.schedule.step()
@@ -98,15 +108,18 @@ class SokobanModel(Model):
                 print(f"VIsitado: {self.visited}")
 
                 neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
-                neighbors_inv = list(reversed(neighbors))
-                print(f"Vecinos: {neighbors_inv} del {current}" )
-                for neighbor in neighbors_inv:
+                #Organiza las prioridades de los vecinos
+                neighbors_sort = list(neighbors)
+                neighbors_sort[1:3] = neighbors_sort[2:0:-1]
+                neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
+                print(f"Vecinos: {neighbors_sort} del {current}" )
+                for neighbor in neighbors_sort:
                     # Obtener el agente que se encuentra en la posición vecina y verificar que no sea una roca 
                     size_agents = len(self.grid.get_cell_list_contents([neighbor]))
                     
                     if neighbor not in self.visited:
                         if(size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent)):
-                            print("Vecino: ", neighbor)
+                            print("Vecino roca: ", neighbor)
                         else:
                             self.queue.put((neighbor, step + 1))
             print(f"Cola: {self.queue.queue}")
@@ -114,25 +127,36 @@ class SokobanModel(Model):
             self.finished = True
     
     def dfs(self):
-        if self.stack:
+        if len(self.stack) > 0:
             current, step = self.stack.pop()
-
+            print(f"Current: {current}")
+            
             if current == self.goal_position:
-                return step
-
-            if current[0] not in self.visited:
-                self.visited.add(current[0])
-                neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
+                self.finished = True
+                self.found = True
                 
-                for neighbor in neighbors:
+            if current not in self.visited:
+                self.visited.add(current)
+                print(f"Visitado: {self.visited}")
+
+                neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False )
+                #Organiza las prioridades de los vecinos
+                neighbors_sort = list(neighbors)
+                neighbors_sort[1:3] = neighbors_sort[2:0:-1]
+                neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
+                print(f"Vecinos: {neighbors_sort} del {current}")
+
+                for neighbor in neighbors_sort:
                     size_agents = len(self.grid.get_cell_list_contents([neighbor]))
 
                     if neighbor not in self.visited:
                         if size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent):
-                            print("Vecino: ", neighbor)
+                            print("Vecino roca: ", neighbor)
                         else:
                             self.stack.append((neighbor, step + 1))
             print(f"Pila: {self.stack}")
+        else:
+            self.finished = True
             
     def costo_uniforme(self):
         if not self.finished:
@@ -166,7 +190,11 @@ class SokobanModel(Model):
                             total_cost = step + cost
 
                             self.queue.put((neighbor, total_cost))
+        else:
+            self.finished = True
 
     def calculate_cost(self, position):
         # En este ejemplo, el costo de movimiento es 10 para cualquier dirección
         return 10
+        
+
