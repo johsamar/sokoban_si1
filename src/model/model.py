@@ -23,6 +23,7 @@ class SokobanModel(Model):
         self.stack = []
         self.priority_queue = PriorityQueue()
         self.visited = set()
+        self.final_path = {}
 
         # Los flags de finalización y éxito
         self.finished = False
@@ -52,15 +53,15 @@ class SokobanModel(Model):
         calculate_all_heristic(self.heuristic, self.schedule, goal_agent)
 
         # Obtener la posición actual del robot
-        start_position = robot_agent.pos
+        self.start_position = robot_agent.pos
 
         # Lista para la sumar los nodos en la columna
         self.suma_nodos = np.zeros(self.width)
 
         # Agregar la posición inicial del robot a las estructuras de datos
-        self.queue.put((start_position, 0))
-        self.priority_queue.put((start_position, 0))
-        self.stack.append((start_position, 0))
+        self.queue.put((self.start_position, 0))
+        self.priority_queue.put((self.start_position, 0))
+        self.stack.append((self.start_position, 0))
      
     def print_grid(self):
         for y in range(self.grid.height):
@@ -93,6 +94,8 @@ class SokobanModel(Model):
                 index = get_index(self.suma_nodos, maximo)
                 print("La columna con mas nodos es: " + str(index) + " con "+ str(maximo))
                 print("Se encontró la meta")
+                path = list(reversed(self.get_final_path(self.start_position, self.goal_position)))
+                print("path", path )
             else:
                 print("No se encontró la meta")
 
@@ -122,6 +125,7 @@ class SokobanModel(Model):
                             print("Vecino roca: ", neighbor)
                         else:
                             self.queue.put((neighbor, step + 1))
+                            self.final_path[neighbor] = current
             print(f"Cola: {self.queue.queue}")
         else:
             self.finished = True
@@ -155,6 +159,8 @@ class SokobanModel(Model):
                             print("Vecino roca: ", neighbor)
                         else:
                             self.stack.append((neighbor, step + 1))
+                            self.final_path[neighbor] = current
+
             print(f"Pila: {self.stack}")
         else:
             self.finished = True
@@ -191,6 +197,7 @@ class SokobanModel(Model):
                             total_cost = step + cost
 
                             self.queue.put((neighbor, total_cost))
+                            self.final_path[neighbor] = current
         else:
             self.finished = True
 
@@ -231,6 +238,8 @@ class SokobanModel(Model):
                 for neighbor in neighbors_sorted:
                     if neighbor not in self.visited:
                         self.priority_queue.put((neighbor, step + 1))
+                        self.final_path[neighbor] = current
+                        
             print(f"Cola: {self.priority_queue.queue}")
         else:
             self.finished = True
@@ -264,5 +273,17 @@ class SokobanModel(Model):
                             total_cost = g_cost + movement_cost + heuristic
 
                             self.priority_queue.put((neighbor, g_cost + movement_cost))
+                            self.final_path[neighbor] = current
             else:
                 self.finished = True
+
+    def get_final_path(self, initial, goal):
+        finish = True
+        path = [goal]
+        parent = goal
+        while finish:
+            parent = self.final_path[parent]
+            path.append(parent)
+            if parent == initial:
+                finish = False
+        return path
