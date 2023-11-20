@@ -83,7 +83,7 @@ class SokobanModel(Model):
         elif self.algorithm == Constans.DFS:
             self.dfs()
         elif self.algorithm == Constans.BEAM_SEARCH:
-            self.beam_search(beam_width=2)
+            self.beam_search(beam_width=4)
         elif self.algorithm == Constans.A_STAR:
             self.a_star()
         if not self.finished:
@@ -93,6 +93,7 @@ class SokobanModel(Model):
                 maximo = self.suma_nodos.max()
                 index = get_index(self.suma_nodos, maximo)
                 print("La columna con mas nodos es: " + str(index) + " con "+ str(maximo))
+                print("Caminos: ", self.final_path)
                 print("Se encontró la meta")
                 path = list(reversed(self.get_final_path(self.start_position, self.goal_position)))
                 print("path", path )
@@ -229,6 +230,8 @@ class SokobanModel(Model):
                     else:                    
                         heuristica = self.grid.get_cell_list_contents([neighbor])[0].heuristic
                         neighbors_with_heuristics.append((neighbor, heuristica))
+                        self.final_path[neighbor] = current
+
 
                 # Ordenar vecinos por heurística y tomar los primeros "beam_width"
                 neighbors_sorted = [neighbor for neighbor, _ in sorted(neighbors_with_heuristics, key=lambda x: x[1])[:beam_width]]
@@ -238,7 +241,6 @@ class SokobanModel(Model):
                 for neighbor in neighbors_sorted:
                     if neighbor not in self.visited:
                         self.priority_queue.put((neighbor, step + 1))
-                        self.final_path[neighbor] = current
                         
             print(f"Cola: {self.priority_queue.queue}")
         else:
