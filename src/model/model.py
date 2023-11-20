@@ -91,9 +91,12 @@ class SokobanModel(Model):
                 print(f"VIsitado: {self.visited}")
 
                 neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
-                neighbors_inv = list(reversed(neighbors))
-                print(f"Vecinos: {neighbors_inv} del {current}" )
-                for neighbor in neighbors_inv:
+                #Organiza las prioridades de los vecinos
+                neighbors_sort = list(neighbors)
+                neighbors_sort[1:3] = neighbors_sort[2:0:-1]
+                neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
+                print(f"Vecinos: {neighbors_sort} del {current}" )
+                for neighbor in neighbors_sort:
                     # Obtener el agente que se encuentra en la posición vecina y verificar que no sea una roca 
                     size_agents = len(self.grid.get_cell_list_contents([neighbor]))
                     
@@ -107,22 +110,34 @@ class SokobanModel(Model):
             self.finished = True
     
     def dfs(self):
-        if self.stack:
+        if len(self.stack) > 0:
             current, step = self.stack.pop()
-
+            print(f"Current: {current}")
+            
             if current == self.goal_position:
-                return step
-
-            if current[0] not in self.visited:
-                self.visited.add(current[0])
-                neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
+                self.finished = True
+                self.found = True
                 
-                for neighbor in neighbors:
+            if current not in self.visited:
+                self.visited.add(current)
+                print(f"Visitado: {self.visited}")
+
+                neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False )
+                #Organiza las prioridades de los vecinos
+                neighbors_sort = list(neighbors)
+                neighbors_sort[1:3] = neighbors_sort[2:0:-1]
+                neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
+                print(f"Vecinos: {neighbors_sort} del {current}")
+
+                for neighbor in neighbors_sort:
                     size_agents = len(self.grid.get_cell_list_contents([neighbor]))
 
                     if neighbor not in self.visited:
                         if size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent):
-                            print("Vecino: ", neighbor)
+                            print("Vecino roca: ", neighbor)
                         else:
                             self.stack.append((neighbor, step + 1))
             print(f"Pila: {self.stack}")
+        else:
+            self.finished = True
+

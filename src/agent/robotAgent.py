@@ -12,7 +12,8 @@ class RobotAgent(Agent):
     def step(self):
         if self.model.algorithm == Constans.BFS:
             next_position = self.model.queue.queue[0]
-
+        elif self.model.algorithm == Constans.DFS:
+            next_position = self.model.stack[-1]
         self.model.grid.move_agent(self, next_position[0])
        
         
