@@ -75,6 +75,8 @@ class SokobanModel(Model):
         # Realizar la búsqueda en anchura
         if self.algorithm == Constans.BFS:
             self.bfs()
+        if self.algorithm == Constans.UNIFORM_COST:
+            self.costo_uniforme()
 
         if not self.finished:
             self.schedule.step()
@@ -131,3 +133,40 @@ class SokobanModel(Model):
                         else:
                             self.stack.append((neighbor, step + 1))
             print(f"Pila: {self.stack}")
+            
+    def costo_uniforme(self):
+        if not self.finished:
+            if not self.queue.empty():
+                current, step = self.queue.get()
+
+                # Si el nodo actual es la meta, establece los indicadores y finaliza
+                if current == self.goal_position:
+                    self.finished = True
+                    self.found = True
+
+                print(f"Paso actual: {current}")
+                print(f"Vecinos: {self.grid.get_neighborhood(current, moore=False, include_center=False)}")
+                
+                if current not in self.visited:
+                    self.visited.add(current)
+
+                    # Obtén los vecinos del nodo actual
+                    neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
+                    for neighbor in neighbors:
+                        # Verificar si el vecino es un camino libre
+                        contents = self.grid.get_cell_list_contents([neighbor])
+                        is_rock = any(isinstance(obj, RockAgent) for obj in contents)
+                        is_box = any(isinstance(obj, BoxAgent) for obj in contents)
+
+                        if not is_rock and not is_box and neighbor not in self.visited:
+                            # Calcular el costo de moverse al vecino
+                            cost = self.calculate_cost(neighbor)
+
+                            # Actualizar el costo total
+                            total_cost = step + cost
+
+                            self.queue.put((neighbor, total_cost))
+
+    def calculate_cost(self, position):
+        # En este ejemplo, el costo de movimiento es 10 para cualquier dirección
+        return 10
