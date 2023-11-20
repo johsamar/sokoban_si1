@@ -26,7 +26,8 @@ def agent_portrayal(agent):
         "Filled": "true",
         "r": 0.9,
         "Color": agent.color,
-        "Layer": 0,
+        "Layer": agent.layer,
+        "text": agent.text if hasattr(agent, 'text') else ""
     }
     return portrayal
 
@@ -38,7 +39,7 @@ def agent_portrayal(agent):
 # ----------------------------------------------
 
 filename = os.path.join(PROJECT_PATH, "maps/map2.txt")
-algoritmo_seleccionado = Constans.DFS
+algoritmo_seleccionado = Constans.BFS
 heuristica_seleccionada = None
 
 model = SokobanModel(filename=filename)

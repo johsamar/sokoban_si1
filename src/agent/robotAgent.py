@@ -1,21 +1,17 @@
-from PIL import Image
-
 from mesa import Agent
-import numpy as np
+from queue import Queue
+
 
 class RobotAgent(Agent):
-    def __init__(self,unique_id,model):
+    def __init__(self,unique_id, model):
         super().__init__(unique_id,model)
         self.image = "assets/robot.png"
         self.color = "grey"
-        self.wealth=1
+        self.layer = 1
+    
+    def step(self):
+        next_position = self.model.queue.queue[0]
 
-    def step(self) -> None:
-        return None
-
-
-    def give_money(self):
-        return None
-
-    def move(self) -> None:
-        return None
+        self.model.grid.move_agent(self, next_position[0])
+       
+        
