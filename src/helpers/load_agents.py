@@ -3,7 +3,7 @@ from agent.rockAgent import RockAgent
 from agent.boxAgent import BoxAgent
 from agent.finishAgent import FinishAgent
 from agent.pathAgent import PathAgent
-
+from helpers.constants import Constans
 def load_agents(map, model, grid, schedule, width, height):
     agent_id = 0
     for y in range(height - 1, -1, -1):
@@ -35,3 +35,22 @@ def load_agents(map, model, grid, schedule, width, height):
                 grid.place_agent(finish, (x, y))
                 schedule.add(finish)
                 agent_id += 1
+
+def calculate_heuristic(heuristic, initial_position, finish_position):
+    if heuristic == Constans.MANHATTAN:
+        # Cálculo de la distancia de Manhattan entre la caja y la meta
+        distance = abs(initial_position[0] - finish_position[0]) + abs(initial_position[1] - finish_position[1])
+        return distance
+    elif heuristic == Constans.EUCLIDEAN:
+        # Cálculo de la distancia euclidiana entre la caja y la meta
+        distance = ((initial_position[0] - finish_position[0])**2 + (initial_position[1] - finish_position[1])**2)**0.5
+        return distance
+    
+def calculate_all_heristic(selected_heuristic, schedule, goal_agent):
+    for agent in schedule.agents: 
+        if isinstance(agent, PathAgent):
+            heuristic = calculate_heuristic(selected_heuristic, agent.pos, goal_agent.pos)
+            print("Heuristica de", agent.pos, ":", heuristic)
+            agent.heuristic = heuristic
+
+        

@@ -85,7 +85,7 @@ class SeleccionAlgoritmoApp:
         self.variable_algoritmo = tk.StringVar()
 
     def habilitar_heuristica(self, *args):
-        if self.variable.get() == "Algoritmo Informado":
+        if self.variable.get() == Constans.INFORMADO:
             self.menu_heuristica.config(state=tk.NORMAL)
             self.menu_no_informados.config(state=tk.DISABLED)
             self.menu_informados.config(state=tk.NORMAL)

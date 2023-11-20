@@ -7,8 +7,8 @@ from agent.finishAgent import FinishAgent
 from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from utils.readfile import read_map
-from queue import Queue
-from helpers.load_agents import load_agents
+from queue import Queue, PriorityQueue
+from helpers.load_agents import load_agents, calculate_all_heristic
 from helpers.constants import Constans
 
 class SokobanModel(Model):
@@ -17,8 +17,9 @@ class SokobanModel(Model):
         self.schedule = RandomActivation(self)
 
         # Estructuras de datos para la búsqueda
-        self.queue = Queue()
+        self.queue = Queue()        
         self.stack = []
+        self.priority_queue = PriorityQueue()
         self.visited = set()
 
         # Los flags de finalización y éxito
@@ -46,11 +47,14 @@ class SokobanModel(Model):
         #Define la posición de la meta
         self.goal_position = goal_agent.pos
 
+        calculate_all_heristic(self.heuristic, self.schedule, goal_agent)
+
         # Obtener la posición actual del robot
         start_position = robot_agent.pos
 
         # Agregar la posición inicial del robot a las estructuras de datos
         self.queue.put((start_position, 0))
+        self.priority_queue.put((start_position, 0))
         self.stack.append((start_position, 0))
      
     def print_grid(self):
@@ -63,21 +67,6 @@ class SokobanModel(Model):
                 else:
                     print(f'Camino en ({x}, {y})', end='')
             print()
-            
-    # Calcula la heuristica entre la caja y la meta          
-    def calculate_heuristic(self, box_position, finish_position):
-        if self.heuristic == 'Manhattan':
-            # Cálculo de la distancia de Manhattan entre la caja y la meta
-            distance = abs(box_position[0] - finish_position[0]) + abs(box_position[1] - finish_position[1])
-            return distance
-        elif self.heuristic == 'Euclidiana':
-            # Cálculo de la distancia euclidiana entre la caja y la meta
-            distance = ((box_position[0] - finish_position[0])**2 + (box_position[1] - finish_position[1])**2)**0.5
-            return distance     
-            
-            
-        
-            
 
     def step(self) -> None:        
         # Realizar la búsqueda en anchura
@@ -85,6 +74,8 @@ class SokobanModel(Model):
             self.bfs()
         elif self.algorithm == Constans.DFS:
             self.dfs()
+        elif self.algorithm == Constans.BEAM_SEARCH:
+            self.beam_search(beam_width=2)
 
         if not self.finished:
             self.schedule.step()
@@ -156,3 +147,38 @@ class SokobanModel(Model):
         else:
             self.finished = True
 
+    def beam_search(self, beam_width):
+        if not self.priority_queue.empty():
+            current, step = self.priority_queue.get()
+            print(f"Current: {current}")
+            
+            if current == self.goal_position:
+                self.finished = True
+                self.found = True
+
+            if current not in self.visited:
+                self.visited.add(current)
+                print(f"Visitado: {self.visited}")
+
+                neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
+                neighbors_with_heuristics = []
+
+                for neighbor in neighbors:
+                    size_agents = len(self.grid.get_cell_list_contents([neighbor]))
+                    if size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent):
+                            print("Vecino roca: ", neighbor)
+                    else:                    
+                        heuristica = self.grid.get_cell_list_contents([neighbor])[0].heuristic
+                        neighbors_with_heuristics.append((neighbor, heuristica))
+
+                # Ordenar vecinos por heurística y tomar los primeros "beam_width"
+                neighbors_sorted = [neighbor for neighbor, _ in sorted(neighbors_with_heuristics, key=lambda x: x[1])[:beam_width]]
+
+                print(f"Vecinos: {neighbors_sorted} del {current}")
+
+                for neighbor in neighbors_sorted:
+                    if neighbor not in self.visited:
+                        self.priority_queue.put((neighbor, step + 1))
+            print(f"Cola: {self.priority_queue.queue}")
+        else:
+            self.finished = True
