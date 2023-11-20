@@ -32,15 +32,15 @@ def agent_portrayal(agent):
     return portrayal
 
 # Ventana para seleccionar el algoritmo y la heuristica
-# root = tk.Tk()
-# vantana = SeleccionAlgoritmoApp(root)
-# vantana.run()
-# algoritmo_seleccionado, filename, heuristica_seleccionada =  vantana.getValores()
+root = tk.Tk()
+vantana = SeleccionAlgoritmoApp(root)
+vantana.run()
+algoritmo_seleccionado, filename, heuristica_seleccionada =  vantana.getValores()
 # ----------------------------------------------
 
-filename = os.path.join(PROJECT_PATH, "maps/map2.txt")
-algoritmo_seleccionado = Constans.BFS
-heuristica_seleccionada = None
+#filename = os.path.join(PROJECT_PATH, "maps/map2.txt")
+#algoritmo_seleccionado = Constans.DFS
+#heuristica_seleccionada = None
 
 model = SokobanModel(filename=filename)
 grid = CanvasGrid(agent_portrayal, model.grid.width, model.grid.height, 500, 500)
@@ -61,7 +61,8 @@ server = ModularServer(
 server.port = 8521
 print("Algoritmo en el modelo:", server.model.algorithm)
 print("Heuristica en el modelo:", server.model.heuristic)
-
+print("Mapa con coordenadas:")
+server.model.print_grid()
 server.launch()
 
 

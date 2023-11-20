@@ -50,10 +50,17 @@ class SokobanModel(Model):
             for x in range(self.grid.width):
                 cell = self.grid.get_cell_list_contents([(x, y)])
                 if len(cell) > 0:
-                    print(cell[0].__class__.__name__[0], end='')
+                    for item in cell:
+                        print(f'{item.__class__.__name__} en ({x}, {y})', end='')
                 else:
-                    print(' ', end='')
+                    print(f'Camino en ({x}, {y})', end='')
             print()
+                
+            
+            
+            
+        
+            
 
     def step(self) -> None:        
         # Realizar la búsqueda en anchura

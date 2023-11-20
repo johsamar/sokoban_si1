@@ -53,14 +53,16 @@ class SeleccionAlgoritmoApp:
         self.variable.trace_add("write", self.habilitar_heuristica)
 
         # Botón para confirmar selección de algoritmo
-        self.boton_seleccionar = tk.Button(root, text="Seleccionar", command=lambda _:self.seleccionar_algoritmo)
+        self.boton_seleccionar = tk.Button(root, text="Seleccionar", command=self.seleccionar_algoritmo)
         self.boton_seleccionar.pack()
+        
+       
 
         # Crear menú desplegable para elegir entre cargar archivo o escribir mapa
         opciones_opcion = ["Cargar Archivo", "Escribir Mapa"]
         self.variable_opcion = tk.StringVar(root)
         self.variable_opcion.set(opciones_opcion[0])
-        menu_opcion = tk.OptionMenu(root, self.variable_opcion, *opciones_opcion, command=lambda _:self.seleccionar_opcion)
+        menu_opcion = tk.OptionMenu(root, self.variable_opcion, *opciones_opcion, command=self.seleccionar_opcion)
         menu_opcion.pack()
 
         # Etiqueta para mostrar la ruta del archivo seleccionado
@@ -77,18 +79,24 @@ class SeleccionAlgoritmoApp:
 
         # Variable para almacenar la instancia de la ventana de datos
         self.ventana_datos = None
+        # Inicializar heuristica_seleccionada
+        self.heuristica_seleccionada = None
+        # Inicializar variable_algoritmo
+        self.variable_algoritmo = tk.StringVar()
 
     def habilitar_heuristica(self, *args):
         if self.variable.get() == "Algoritmo Informado":
             self.menu_heuristica.config(state=tk.NORMAL)
             self.menu_no_informados.config(state=tk.DISABLED)
             self.menu_informados.config(state=tk.NORMAL)
+            self.heuristica_seleccionada = self.variable_heuristica.get()  # Actualizar el valor de heuristica_seleccionada
+
         else:
             self.menu_heuristica.config(state=tk.DISABLED)
             self.menu_no_informados.config(state=tk.NORMAL)
             self.menu_informados.config(state=tk.DISABLED)
 
-    def seleccionar_opcion(self):
+    def seleccionar_opcion(self,_):
         opcion = self.variable_opcion.get()
 
         if opcion == "Cargar Archivo":
@@ -128,6 +136,10 @@ class SeleccionAlgoritmoApp:
 
         #cerrar ventana
         self.root.destroy()
+        
+    def seleccionar_algoritmo(self):
+        self.algoritmo_seleccionado = self.variable_algoritmo.get()  # Obtener la opción seleccionada del algoritmo
+        self.heuristica_seleccionada = self.variable_heuristica.get()  # Obtener la opción seleccionada de la heurística
 
     def getValores(self):
         return self.algoritmo_seleccionado, self.filename, self.heuristica_seleccionada
@@ -135,3 +147,5 @@ class SeleccionAlgoritmoApp:
     def run(self):
         self.root.geometry("600x400")
         self.root.mainloop()
+
+    
