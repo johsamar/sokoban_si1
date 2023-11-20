@@ -10,7 +10,7 @@ class Constans:
 
     HILL_CLIMBING = "Hill Climbing"
     BEAM_SEARCH = "Beam Search"
-    ASTAR = "A*"
+    A_STAR = "A*"
 
     MANHATTAN = "Manhattan"
     EUCLIDEAN = "Euclidiana"

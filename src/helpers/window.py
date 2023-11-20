@@ -21,7 +21,7 @@ class SeleccionAlgoritmoApp:
         self.variable_no_informados.set(self.opciones[0])
 
          # Lista de opciones de algoritmos no informados
-        self.opciones_informados = ["Seleccione un algoritmo informado", Constans.BEAM_SEARCH, Constans.ASTAR, Constans.HILL_CLIMBING]
+        self.opciones_informados = ["Seleccione un algoritmo informado", Constans.BEAM_SEARCH, Constans.A_STAR, Constans.HILL_CLIMBING]
         self.variable_informados = tk.StringVar(root)
         self.variable_informados.set(self.opciones[0])
 

@@ -78,7 +78,8 @@ class SokobanModel(Model):
             self.dfs()
         elif self.algorithm == Constans.BEAM_SEARCH:
             self.beam_search(beam_width=2)
-
+        elif self.algorithm == Constans.A_STAR:
+            self.a_star()
         if not self.finished:
             self.schedule.step()
         if self.finished:
@@ -224,3 +225,35 @@ class SokobanModel(Model):
             print(f"Cola: {self.priority_queue.queue}")
         else:
             self.finished = True
+
+    def a_star(self):
+        if not self.finished:
+            if not self.priority_queue.empty():
+                current, g_cost = self.priority_queue.get()
+
+                if current == self.goal_position:
+                    self.finished = True
+                    self.found = True
+
+                print(f"Current: {current}")
+
+                if current not in self.visited:
+                    self.visited.add(current)
+
+                    neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
+                    for neighbor in neighbors:
+                        contents = self.grid.get_cell_list_contents([neighbor])
+                        is_rock = any(isinstance(obj, RockAgent) for obj in contents)
+                        is_box = any(isinstance(obj, BoxAgent) for obj in contents)
+
+                        if not is_rock and not is_box and neighbor not in self.visited:
+                            # Calcular el costo de movimiento
+                            movement_cost = self.calculate_cost(neighbor)
+                            # Calcular la heurística
+                            heuristic = self.grid.get_cell_list_contents([neighbor])[0].heuristic
+                            # Calcular el costo total: f(n) = g(n) + h(n)
+                            total_cost = g_cost + movement_cost + heuristic
+
+                            self.priority_queue.put((neighbor, g_cost + movement_cost))
+            else:
+                self.finished = True
