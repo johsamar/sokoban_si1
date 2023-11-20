@@ -22,7 +22,7 @@ class ViewElement(TextElement):
 
 def agent_portrayal(agent):
     portrayal = {
-        "Shape": "circle",
+        "Shape": agent.image if hasattr(agent, 'image') else "circle",
         "Filled": "true",
         "r": 0.9,
         "Color": agent.color,
@@ -32,15 +32,15 @@ def agent_portrayal(agent):
     return portrayal
 
 # Ventana para seleccionar el algoritmo y la heuristica
-root = tk.Tk()
-vantana = SeleccionAlgoritmoApp(root)
-vantana.run()
-algoritmo_seleccionado, filename, heuristica_seleccionada =  vantana.getValores()
+# root = tk.Tk()
+# vantana = SeleccionAlgoritmoApp(root)
+# vantana.run()
+# algoritmo_seleccionado, filename, heuristica_seleccionada =  vantana.getValores()
 # ----------------------------------------------
 
-#filename = os.path.join(PROJECT_PATH, "maps/map2.txt")
-#algoritmo_seleccionado = Constans.DFS
-#heuristica_seleccionada = None
+filename = os.path.join(PROJECT_PATH, "maps/map4.txt")
+algoritmo_seleccionado = Constans.A_STAR
+heuristica_seleccionada = Constans.MANHATTAN
 
 model = SokobanModel(filename=filename)
 grid = CanvasGrid(agent_portrayal, model.grid.width, model.grid.height, 500, 500)

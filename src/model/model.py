@@ -10,6 +10,8 @@ from utils.readfile import read_map
 from queue import Queue, PriorityQueue
 from helpers.load_agents import load_agents, calculate_all_heristic
 from helpers.constants import Constans
+import numpy as np
+from utils.config import get_index
 
 class SokobanModel(Model):
 
@@ -52,6 +54,9 @@ class SokobanModel(Model):
         # Obtener la posición actual del robot
         start_position = robot_agent.pos
 
+        # Lista para la sumar los nodos en la columna
+        self.suma_nodos = np.zeros(self.width)
+
         # Agregar la posición inicial del robot a las estructuras de datos
         self.queue.put((start_position, 0))
         self.priority_queue.put((start_position, 0))
@@ -84,6 +89,9 @@ class SokobanModel(Model):
             self.schedule.step()
         if self.finished:
             if self.found:
+                maximo = self.suma_nodos.max()
+                index = get_index(self.suma_nodos, maximo)
+                print("La columna con mas nodos es: " + str(index) + " con "+ str(maximo))
                 print("Se encontró la meta")
             else:
                 print("No se encontró la meta")
@@ -129,8 +137,9 @@ class SokobanModel(Model):
                 
             if current not in self.visited:
                 self.visited.add(current)
+                self.suma_nodos[current[0]] += 1
                 print(f"Visitado: {self.visited}")
-
+                print("suma: " + str(self.suma_nodos))
                 neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False )
                 #Organiza las prioridades de los vecinos
                 neighbors_sort = list(neighbors)
