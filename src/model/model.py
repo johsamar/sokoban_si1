@@ -59,8 +59,17 @@ class SokobanModel(Model):
                 else:
                     print(f'Camino en ({x}, {y})', end='')
             print()
-                
             
+    # Calcula la heuristica entre la caja y la meta          
+    def calculate_heuristic(self, box_position, finish_position):
+        if self.heuristic == 'Manhattan':
+            # Cálculo de la distancia de Manhattan entre la caja y la meta
+            distance = abs(box_position[0] - finish_position[0]) + abs(box_position[1] - finish_position[1])
+            return distance
+        elif self.heuristic == 'Euclidiana':
+            # Cálculo de la distancia euclidiana entre la caja y la meta
+            distance = ((box_position[0] - finish_position[0])**2 + (box_position[1] - finish_position[1])**2)**0.5
+            return distance     
             
             
         
