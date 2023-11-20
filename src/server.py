@@ -63,6 +63,7 @@ print("Algoritmo en el modelo:", server.model.algorithm)
 print("Heuristica en el modelo:", server.model.heuristic)
 print("Mapa con coordenadas:")
 server.model.print_grid()
+print("Prueba de heuristica:", server.model.calculate_heuristic((1, 5), (3, 5)))
 server.launch()
 
 
