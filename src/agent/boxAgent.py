@@ -8,7 +8,7 @@ class BoxAgent(Agent):
         super().__init__(unique_id,model)
         self.image = os.path.join(PROJECT_PATH, "assets/box.png")
         self.color = "yellow"
-        self.wealth=1
+        self.layer = 1
 
     def step(self) -> None:
         return None

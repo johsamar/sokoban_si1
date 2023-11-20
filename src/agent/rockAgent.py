@@ -8,7 +8,7 @@ class RockAgent(Agent):
         super().__init__(unique_id,model)
         self.image = "assets/rock.jpg"
         self.color = "black"
-        self.wealth=1
+        self.layer = 1
 
     def step(self) -> None:
         return None

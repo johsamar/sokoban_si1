@@ -26,7 +26,8 @@ def agent_portrayal(agent):
         "Filled": "true",
         "r": 0.9,
         "Color": agent.color,
-        "Layer": 0,
+        "Layer": agent.layer,
+        "text": agent.text if hasattr(agent, 'text') else ""
     }
     return portrayal
 

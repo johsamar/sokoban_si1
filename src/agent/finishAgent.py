@@ -5,7 +5,7 @@ class FinishAgent(Agent):
         super().__init__(unique_id,model)
         self.image = "assets/finish.jpg"
         self.color = "green"
-        self.wealth=1
+        self.layer = 1
 
     def step(self) -> None:
         return None
