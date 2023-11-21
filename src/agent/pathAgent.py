@@ -7,12 +7,13 @@ class PathAgent(Agent):
         self.color = "white"
         self.layer = 0
         self.heuristic = None
-        self.text = ""
+        self.image = "assets/floor.jpg"
+        self.text = "" 
 
-    def move(self, new_position):
-        pass
+    def set_state(self, state):
+        self.text = str(state)
 
-    def step(self):
-       if self.model.algorithm == Constans.BFS:
-           next_position = self.model.queue.queue[0]
-           self.text = next_position[1]
+    # def step(self):
+    #    if self.model.algorithm == Constans.BFS:
+    #        next_position = self.model.queue.queue[0]
+    #        self.text = next_position[1]

@@ -39,7 +39,7 @@ def agent_portrayal(agent):
 # ----------------------------------------------
 
 filename = os.path.join(PROJECT_PATH, "maps/map.txt")
-algoritmo_seleccionado = Constans.UNIFORM_COST
+algoritmo_seleccionado = Constans.BEAM_SEARCH
 heuristica_seleccionada = Constans.MANHATTAN
 
 model = SokobanModel(filename=filename)

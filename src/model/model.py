@@ -22,7 +22,9 @@ class SokobanModel(Model):
         self.queue = Queue()        
         self.stack = []
         self.priority_queue = PriorityQueue()
+        self.priority_queue_a = PriorityQueue()
         self.visited = set()
+        self.vsited_list = []
         self.final_path = {}
 
         # Los flags de finalización y éxito
@@ -60,7 +62,8 @@ class SokobanModel(Model):
 
         # Agregar la posición inicial del robot a las estructuras de datos
         self.queue.put((self.start_position, 0))
-        self.priority_queue.put((self.start_position, 0))
+        self.priority_queue.put((0, self.start_position))
+        self.priority_queue_a.put((0, self.start_position, 0))
         self.stack.append((self.start_position, 0))
      
     def print_grid(self):
@@ -76,25 +79,27 @@ class SokobanModel(Model):
 
     def step(self) -> None:        
         # Realizar la búsqueda en anchura
-        if self.algorithm == Constans.BFS:
+        if self.algorithm == Constans.BFS and not self.finished:
             self.bfs()
-        if self.algorithm == Constans.UNIFORM_COST:
+        if self.algorithm == Constans.UNIFORM_COST and not self.finished:
             self.costo_uniforme()
-        elif self.algorithm == Constans.DFS:
-            self.dfs()
-        elif self.algorithm == Constans.BEAM_SEARCH:
+        elif self.algorithm == Constans.DFS and not self.finished:
+            # self.dfs()
+            self.dfs2()
+        elif self.algorithm == Constans.BEAM_SEARCH and not self.finished:
             self.beam_search(beam_width=4)
-        elif self.algorithm == Constans.A_STAR:
+        elif self.algorithm == Constans.A_STAR and not self.finished:
             self.a_star()
         if not self.finished:
             self.schedule.step()
         if self.finished:
             if self.found:
-                maximo = self.suma_nodos.max()
-                index = get_index(self.suma_nodos, maximo)
-                print("La columna con mas nodos es: " + str(index) + " con "+ str(maximo))
-                print("Caminos: ", self.final_path)
+                # maximo = self.suma_nodos.max()
+                # index = get_index(self.suma_nodos, maximo)
+                # print("La columna con mas nodos es: " + str(index) + " con "+ str(maximo))
                 print("Se encontró la meta")
+                print("orden de visitados: ", self.vsited_list)
+                print("Cantidad de nodos visitados: ", len(self.visited))
                 path = list(reversed(self.get_final_path(self.start_position, self.goal_position)))
                 print("path", path )
             else:
@@ -109,21 +114,24 @@ class SokobanModel(Model):
                 self.found = True
             if current not in self.visited:
                 self.visited.add(current)
-                print(f"VIsitado: {self.visited}")
+                
+                # añadir el orden de visitados
+                self.increase_node(current)
 
                 neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
                 #Organiza las prioridades de los vecinos
                 neighbors_sort = list(neighbors)
                 neighbors_sort[1:3] = neighbors_sort[2:0:-1]
                 neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
-                print(f"Vecinos: {neighbors_sort} del {current}" )
+                # print(f"Vecinos: {neighbors_sort} del {current}" )
                 for neighbor in neighbors_sort:
                     # Obtener el agente que se encuentra en la posición vecina y verificar que no sea una roca 
                     size_agents = len(self.grid.get_cell_list_contents([neighbor]))
                     
                     if neighbor not in self.visited:
                         if(size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent)):
-                            print("Vecino roca: ", neighbor)
+                            # print("Vecino roca: ", neighbor)
+                            pass
                         else:
                             self.queue.put((neighbor, step + 1))
                             self.final_path[neighbor] = current
@@ -165,26 +173,76 @@ class SokobanModel(Model):
             print(f"Pila: {self.stack}")
         else:
             self.finished = True
+
+    def dfs2(self):
+        if len(self.stack) > 0:
+            current, step = self.stack.pop()
+            print(f"Current: {current}")
+            
+            if current == self.goal_position:
+                self.finished = True
+                self.found = True
+                
+            if current not in self.visited:
+                self.visited.add(current)
+                # self.suma_nodos[current[0]] += 1
+                # print(f"Visitado: {self.visited}")
+                # print("suma: " + str(self.suma_nodos))
+                
+                # añadir el orden de visitados
+                self.increase_node(current)
+
+                neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False )
+                #Organiza las prioridades de los vecinos
+                neighbors_sort = list(neighbors)
+                neighbors_sort[1:3] = neighbors_sort[2:0:-1]
+                neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
+                print(f"Vecinos: {neighbors_sort} del {current}")
+                neighbors_inv = list(reversed(neighbors_sort))
+                for neighbor in neighbors_inv:
+                    size_agents = len(self.grid.get_cell_list_contents([neighbor]))
+
+                    if neighbor not in self.visited:
+                        if size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent):
+                            print("Vecino roca: ", neighbor)
+                        else:
+                            self.stack.append((neighbor, step + 1))
+                            self.final_path[neighbor] = current
+
+            print(f"Pila: {self.stack}")
+        else:
+            self.finished = True
             
     def costo_uniforme(self):
         if not self.finished:
-            if not self.queue.empty():
-                current, step = self.queue.get()
-
+            if not self.priority_queue.empty():
+                step, current = self.priority_queue.get()
+                print(f"Current: {current}")
                 # Si el nodo actual es la meta, establece los indicadores y finaliza
                 if current == self.goal_position:
                     self.finished = True
                     self.found = True
 
-                print(f"Paso actual: {current}")
-                print(f"Vecinos: {self.grid.get_neighborhood(current, moore=False, include_center=False)}")
+                # print(f"Paso actual: {current}")
+                # print(f"Vecinos: {self.grid.get_neighborhood(current, moore=False, include_center=False)}")
                 
                 if current not in self.visited:
                     self.visited.add(current)
+                    
+                    # añadir el orden de visitados
+                    self.increase_node(current)
 
                     # Obtén los vecinos del nodo actual
                     neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
-                    for neighbor in neighbors:
+                    
+                    neighbors_sort = list(neighbors)
+                    neighbors_sort[1:3] = neighbors_sort[2:0:-1]
+                    neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
+                    print(f"Vecinos: {neighbors_sort} del {current}")
+                    # neighbors_inv = list(reversed(neighbors_sort))
+                    # print(f"Vecinos inv: {neighbors_inv} del {current}")
+
+                    for neighbor in neighbors_sort:
                         # Verificar si el vecino es un camino libre
                         contents = self.grid.get_cell_list_contents([neighbor])
                         is_rock = any(isinstance(obj, RockAgent) for obj in contents)
@@ -193,12 +251,15 @@ class SokobanModel(Model):
                         if not is_rock and not is_box and neighbor not in self.visited:
                             # Calcular el costo de moverse al vecino
                             cost = self.calculate_cost(neighbor)
-
+                            print(f"Costo: {cost}")
                             # Actualizar el costo total
+
                             total_cost = step + cost
 
-                            self.queue.put((neighbor, total_cost))
+                            print(f"Costo total: {total_cost}")
+                            self.priority_queue.put((total_cost, neighbor))
                             self.final_path[neighbor] = current
+                    print(f"Cola: {self.priority_queue.queue}")
         else:
             self.finished = True
 
@@ -209,7 +270,7 @@ class SokobanModel(Model):
 
     def beam_search(self, beam_width):
         if not self.priority_queue.empty():
-            current, step = self.priority_queue.get()
+            step, current = self.priority_queue.get()
             print(f"Current: {current}")
             
             if current == self.goal_position:
@@ -219,28 +280,25 @@ class SokobanModel(Model):
             if current not in self.visited:
                 self.visited.add(current)
                 print(f"Visitado: {self.visited}")
+                 # añadir el orden de visitados
+                self.increase_node(current)
 
                 neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
-                neighbors_with_heuristics = []
-
-                for neighbor in neighbors:
-                    size_agents = len(self.grid.get_cell_list_contents([neighbor]))
-                    if size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent):
-                            print("Vecino roca: ", neighbor)
-                    else:                    
-                        heuristica = self.grid.get_cell_list_contents([neighbor])[0].heuristic
-                        neighbors_with_heuristics.append((neighbor, heuristica))
-                        self.final_path[neighbor] = current
-
-
-                # Ordenar vecinos por heurística y tomar los primeros "beam_width"
-                neighbors_sorted = [neighbor for neighbor, _ in sorted(neighbors_with_heuristics, key=lambda x: x[1])[:beam_width]]
-
-                print(f"Vecinos: {neighbors_sorted} del {current}")
-
-                for neighbor in neighbors_sorted:
+                neighbors_sort = list(neighbors)
+                neighbors_sort[1:3] = neighbors_sort[2:0:-1]
+                neighbors_sort[-2:] = neighbors_sort[-1], neighbors_sort[-2]
+                print(f"Vecinos: {neighbors_sort} del {current}")
+                neighbors_inv = list(reversed(neighbors_sort))
+                print(f"Vecinos inv: {neighbors_inv} del {current}")
+                for neighbor in neighbors_inv:
                     if neighbor not in self.visited:
-                        self.priority_queue.put((neighbor, step + 1))
+                        size_agents = len(self.grid.get_cell_list_contents([neighbor]))
+                        if size_agents > 1 and isinstance(self.grid.get_cell_list_contents([neighbor])[1], RockAgent):
+                                print("Vecino roca: ", neighbor)
+                        else:           
+                            heuristica = self.grid.get_cell_list_contents([neighbor])[0].heuristic
+                            self.priority_queue.put((heuristica, neighbor))
+                            self.final_path[neighbor] = current
                         
             print(f"Cola: {self.priority_queue.queue}")
         else:
@@ -248,17 +306,17 @@ class SokobanModel(Model):
 
     def a_star(self):
         if not self.finished:
-            if not self.priority_queue.empty():
-                current, g_cost = self.priority_queue.get()
+            if not self.priority_queue_a.empty():
+                g_cost, current, _ = self.priority_queue_a.get()
 
                 if current == self.goal_position:
                     self.finished = True
                     self.found = True
 
-                print(f"Current: {current}")
-
                 if current not in self.visited:
                     self.visited.add(current)
+                    # añadir el orden de visitados
+                    self.increase_node(current)
 
                     neighbors = self.grid.get_neighborhood(current, moore=False, include_center=False)
                     for neighbor in neighbors:
@@ -267,15 +325,13 @@ class SokobanModel(Model):
                         is_box = any(isinstance(obj, BoxAgent) for obj in contents)
 
                         if not is_rock and not is_box and neighbor not in self.visited:
-                            # Calcular el costo de movimiento
                             movement_cost = self.calculate_cost(neighbor)
-                            # Calcular la heurística
                             heuristic = self.grid.get_cell_list_contents([neighbor])[0].heuristic
-                            # Calcular el costo total: f(n) = g(n) + h(n)
                             total_cost = g_cost + movement_cost + heuristic
 
-                            self.priority_queue.put((neighbor, g_cost + movement_cost))
+                            self.priority_queue_a.put((total_cost, neighbor, g_cost + movement_cost))
                             self.final_path[neighbor] = current
+
             else:
                 self.finished = True
 
@@ -285,7 +341,15 @@ class SokobanModel(Model):
         parent = goal
         while finish:
             parent = self.final_path[parent]
-            path.append(parent)
+            path.append((parent[0]-1, parent[1]-1))
             if parent == initial:
                 finish = False
         return path
+    
+    def increase_node(self, current):
+        self.vsited_list.append((current[0]-1, current[1]-1))
+        # print(f"VIsitados: {self.visited}")
+        # Obtener agentes en la posición actual
+        floorAgent = self.grid.get_cell_list_contents([current])[0]
+        #obtener el floorAgent de la posición actual
+        floorAgent.set_state(len(self.visited))

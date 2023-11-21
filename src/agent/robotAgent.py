@@ -12,15 +12,23 @@ class RobotAgent(Agent):
     def step(self):
         if self.model.algorithm == Constans.BFS:
             next_position = self.model.queue.queue[0]
+            self.model.grid.move_agent(self, next_position[0])
+
         elif self.model.algorithm == Constans.DFS:
             next_position = self.model.stack[-1]
+            self.model.grid.move_agent(self, next_position[0])
+
         elif self.model.algorithm == Constans.UNIFORM_COST:
-            next_position = self.model.queue.queue[0]
+            next_position = self.model.priority_queue.queue[0]
+            self.model.grid.move_agent(self, next_position[1])
+
         elif self.model.algorithm == Constans.BEAM_SEARCH:
             next_position = self.model.priority_queue.queue[0]
+            self.model.grid.move_agent(self, next_position[1])
+
         elif self.model.algorithm == Constans.A_STAR:
-            next_position = self.model.priority_queue.queue[0]
+            next_position = self.model.priority_queue_a.queue[0]
+            self.model.grid.move_agent(self, next_position[1])
             
-        self.model.grid.move_agent(self, next_position[0])
        
         
