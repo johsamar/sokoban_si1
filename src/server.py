@@ -38,7 +38,7 @@ def agent_portrayal(agent):
 # algoritmo_seleccionado, filename, heuristica_seleccionada =  vantana.getValores()
 # ----------------------------------------------
 
-filename = os.path.join(PROJECT_PATH, "maps/map.txt")
+filename = os.path.join(PROJECT_PATH, "maps/map0.txt")
 algoritmo_seleccionado = Constans.BEAM_SEARCH
 heuristica_seleccionada = Constans.MANHATTAN
 

@@ -27,6 +27,8 @@ class SokobanModel(Model):
         self.vsited_list = []
         self.final_path = {}
 
+        self.visited_dic = {}
+
         # Los flags de finalización y éxito
         self.finished = False
         self.found = False
@@ -62,9 +64,10 @@ class SokobanModel(Model):
 
         # Agregar la posición inicial del robot a las estructuras de datos
         self.queue.put((self.start_position, 0))
-        self.priority_queue.put((0, self.start_position))
-        self.priority_queue_a.put((0, self.start_position, 0))
+        self.priority_queue.put((0, "nodo0"))
+        self.priority_queue_a.put((0, 0, "nodo0"))
         self.stack.append((self.start_position, 0))
+        self.visited_dic["nodo0"] = self.start_position
      
     def print_grid(self):
         for y in range(self.grid.height):
@@ -216,7 +219,8 @@ class SokobanModel(Model):
     def costo_uniforme(self):
         if not self.finished:
             if not self.priority_queue.empty():
-                step, current = self.priority_queue.get()
+                step, id_current = self.priority_queue.get()
+                current = self.visited_dic[id_current]
                 print(f"Current: {current}")
                 # Si el nodo actual es la meta, establece los indicadores y finaliza
                 if current == self.goal_position:
@@ -257,7 +261,10 @@ class SokobanModel(Model):
                             total_cost = step + cost
 
                             print(f"Costo total: {total_cost}")
-                            self.priority_queue.put((total_cost, neighbor))
+                            # id randome
+                            id_nodo = "nodo" + str(np.random.randint(1000000))                            
+                            self.visited_dic[id_nodo] = neighbor
+                            self.priority_queue.put((total_cost, id_nodo))
                             self.final_path[neighbor] = current
                     print(f"Cola: {self.priority_queue.queue}")
         else:
@@ -270,7 +277,9 @@ class SokobanModel(Model):
 
     def beam_search(self, beam_width):
         if not self.priority_queue.empty():
-            step, current = self.priority_queue.get()
+            _, id_current = self.priority_queue.get()
+            current = self.visited_dic[id_current]
+
             print(f"Current: {current}")
             
             if current == self.goal_position:
@@ -297,7 +306,9 @@ class SokobanModel(Model):
                                 print("Vecino roca: ", neighbor)
                         else:           
                             heuristica = self.grid.get_cell_list_contents([neighbor])[0].heuristic
-                            self.priority_queue.put((heuristica, neighbor))
+                            id_nodo = "nodo" + str(np.random.randint(1000000))                            
+                            self.visited_dic[id_nodo] = neighbor
+                            self.priority_queue.put((heuristica, id_nodo))
                             self.final_path[neighbor] = current
                         
             print(f"Cola: {self.priority_queue.queue}")
@@ -307,7 +318,8 @@ class SokobanModel(Model):
     def a_star(self):
         if not self.finished:
             if not self.priority_queue_a.empty():
-                g_cost, current, _ = self.priority_queue_a.get()
+                t_cost, cost, id_current = self.priority_queue_a.get()
+                current = self.visited_dic[id_current]
 
                 if current == self.goal_position:
                     self.finished = True
@@ -327,9 +339,10 @@ class SokobanModel(Model):
                         if not is_rock and not is_box and neighbor not in self.visited:
                             movement_cost = self.calculate_cost(neighbor)
                             heuristic = self.grid.get_cell_list_contents([neighbor])[0].heuristic
-                            total_cost = g_cost + movement_cost + heuristic
-
-                            self.priority_queue_a.put((total_cost, neighbor, g_cost + movement_cost))
+                            total_cost = t_cost + heuristic
+                            id_nodo = "nodo" + str(np.random.randint(1000000))                            
+                            self.visited_dic[id_nodo] = neighbor
+                            self.priority_queue_a.put((total_cost, t_cost + movement_cost, id_nodo ))
                             self.final_path[neighbor] = current
 
             else:
